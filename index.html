@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Фото категорий - демо для krasim-plintus.ru</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1f1d1b;--mut:#5d574f;--bg:#f5f2ed;--line:#e0d9cf;--acc:#2f5d50}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Manrope,system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+.wrap{max-width:1200px;margin:0 auto;padding:0 20px}
+header{padding:56px 0 30px}
+.tag{font-size:13px;color:var(--acc);font-weight:600}
+h1{font-size:clamp(30px,4.6vw,52px);font-weight:800;line-height:1.08;margin:10px 0 14px;max-width:860px}
+.lead{color:var(--mut);max-width:720px;font-size:17px}
+h2{font-size:28px;font-weight:800;margin:56px 0 18px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.card img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}
+.card div{padding:14px 16px}
+.card b{display:block}.card span{font-size:14px;color:var(--mut)}
+.live{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start}
+iframe{width:100%;aspect-ratio:4/3;border:1px solid var(--line);border-radius:14px;background:#ddd}
+.panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}
+.panel h3{font-size:15px;margin-bottom:10px}
+.cats,.sw{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.cats button{font:inherit;font-size:14px;border:1px solid var(--line);background:#fff;border-radius:20px;padding:8px 13px;cursor:pointer}
+.cats button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.sw button{width:38px;height:38px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer}
+.sw button.on{box-shadow:0 0 0 2px var(--ink)}
+.small{font-size:13px;color:var(--mut)}
+ul.pl{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:10px 30px;margin-top:10px}
+ul.pl li{border-top:1px solid var(--line);padding-top:10px}
+footer{padding:50px 0;color:var(--mut);font-size:14px}
+@media(max-width:860px){.grid{grid-template-columns:1fr 1fr}.live{grid-template-columns:1fr}ul.pl{grid-template-columns:1fr}}
+@media(max-width:520px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<header class="wrap"><div class="tag">Демо к заказу · krasim-plintus.ru</div>
+<h1>Уникальные изображения для каждой категории каталога</h1>
+<p class="lead">Не стоковые фото, которые есть у всех, а свои кадры: интерьерные сцены с вашими профилями под покраску. Каждый кадр можно перекрасить в любой цвет RAL и снять с нужного ракурса - одна сцена даёт десятки уникальных картинок для категорий, баннеров и карточек.</p></header>
+<main class="wrap">
+<h2>Обложки категорий</h2>
+<div class="grid">
+ <div class="card"><img src="img/floor.jpg" alt="Напольный плинтус под покраску"><div><b>Напольные плинтусы под покраску</b><span>RAL 9003, классический профиль</span></div></div>
+ <div class="card"><img src="img/cornice.jpg" alt="Потолочный плинтус и карниз"><div><b>Потолочные плинтусы и карнизы</b><span>RAL 9010, галтель</span></div></div>
+ <div class="card"><img src="img/mold.jpg" alt="Молдинги на стене"><div><b>Молдинги под покраску по RAL</b><span>рамки на стене, шалфейный фон</span></div></div>
+ <div class="card"><img src="img/panel.jpg" alt="Стеновые панели"><div><b>Стеновые панели</b><span>буазери до 0,95 м, RAL 6021</span></div></div>
+ <div class="card"><img src="img/alu.jpg" alt="Алюминиевый плинтус"><div><b>Алюминиевые профили и плинтусы</b><span>скрытый монтаж, LED-подсветка</span></div></div>
+ <div class="card"><img src="img/paint.jpg" alt="Покраска плинтусов по RAL"><div><b>Покраска по RAL</b><span>выкраски профилей, RAL 5014</span></div></div>
+</div>
+
+<h2>Живая сцена - попробуйте сами</h2>
+<div class="live">
+ <iframe id="fr" src="scene.html?cat=floor&ral=9003" title="3D-сцена"></iframe>
+ <div class="panel">
+  <h3>Категория</h3>
+  <div class="cats" id="cats"><button class="on" data-c="floor">Напольный</button><button data-c="cornice">Карниз</button><button data-c="mold">Молдинги</button><button data-c="panel">Панели</button><button data-c="alu">Алюминий</button><button data-c="paint">Покраска</button></div>
+  <h3>Цвет RAL</h3>
+  <div class="sw" id="sw"></div>
+  <p class="small">Вращайте сцену мышью. Цвет меняется сразу - так же быстро я готовлю картинки для всех 50 страниц.</p>
+ </div>
+</div>
+
+<h2>Что сделаю для сайта</h2>
+<ul class="pl">
+ <li>Обложки для всех категорий и подкатегорий (напольные, потолочные, молдинги, карнизы, панели, профили)</li>
+ <li>Отдельные кадры для каждого бренда: Orac, Ultrawood, Перфект, Европласт и др.</li>
+ <li>Баннеры для главной и акций, единый стиль всех изображений</li>
+ <li>Перекраска сцен в популярные цвета RAL - для страницы «Покраска плинтусов»</li>
+ <li>Форматы WebP/JPG, оптимизация под быструю загрузку, alt-тексты для SEO</li>
+ <li>Права на изображения - ваши, никаких стоков и претензий</li>
+</ul>
+</main>
+<footer class="wrap">Демо подготовлено для отклика. Диана</footer>
+<script>
+const R={9003:'#f4f4ef',9010:'#f1ece1',1013:'#e3d9c6',1015:'#e6d2b5',7044:'#b5b0a1',6021:'#87a180',5014:'#6c7c98',3012:'#c6a294',8017:'#45322e',7016:'#383e42'};
+let cat='floor',ral='9003';const fr=document.getElementById('fr');
+document.getElementById('sw').innerHTML=Object.entries(R).map(([k,v],i)=>`<button title="RAL ${k}" data-r="${k}" style="background:${v}" class="${i?'':'on'}"></button>`).join('');
+document.getElementById('sw').onclick=e=>{const b=e.target.closest('button');if(!b)return;ral=b.dataset.r;document.querySelectorAll('#sw button').forEach(x=>x.classList.toggle('on',x===b));try{fr.contentWindow.setPaint(R[ral])}catch(_){fr.src=`scene.html?cat=${cat}&ral=${ral}`}};
+document.getElementById('cats').onclick=e=>{const b=e.target.closest('button');if(!b)return;cat=b.dataset.c;document.querySelectorAll('#cats button').forEach(x=>x.classList.toggle('on',x===b));fr.src=`scene.html?cat=${cat}&ral=${ral}`};
+</script>
+</body></html>

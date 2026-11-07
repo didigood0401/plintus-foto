@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Сцена плинтусов</title>
+<style>html,body{margin:0;height:100%;overflow:hidden;background:#ddd}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head><body>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
+const qp=new URLSearchParams(location.search);
+const R=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});R.setPixelRatio(Math.min(devicePixelRatio,2));R.setSize(innerWidth,innerHeight);
+R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.0;document.body.appendChild(R.domElement);
+const S=new THREE.Scene();S.background=new THREE.Color(0xe9e4dc);
+S.environment=new THREE.PMREMGenerator(R).fromScene(new RoomEnvironment(),.04).texture;S.environmentIntensity=.8;
+const cam=new THREE.PerspectiveCamera(35,innerWidth/innerHeight,.01,50);
+const ctl=new OrbitControls(cam,R.domElement);ctl.enableDamping=true;
+function cv(w,h,f,rep){const c=document.createElement('canvas');c.width=w;c.height=h;f(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;if(rep)t.repeat.set(...rep);return t}
+const rnd=(a,b)=>a+Math.random()*(b-a);
+// herringbone oak
+const oak=cv(1024,1024,(g,w,h)=>{const n=8,ph=h/n;for(let i=0;i<n;i++){let x=-rnd(0,600);while(x<w){const L=rnd(500,900);g.fillStyle=`hsl(${rnd(28,32)},${rnd(30,40)}%,${rnd(50,58)}%)`;g.fillRect(x,i*ph,L,ph);
+ for(let k=0;k<26;k++){g.strokeStyle=`rgba(95,60,30,${rnd(.04,.16)})`;g.lineWidth=rnd(.5,1.6);g.beginPath();const yy=i*ph+rnd(2,ph-2);g.moveTo(x,yy);g.bezierCurveTo(x+L*.3,yy+rnd(-4,4),x+L*.7,yy+rnd(-4,4),x+L,yy+rnd(-2,2));g.stroke()}
+ g.fillStyle='rgba(60,35,15,.45)';g.fillRect(x,i*ph,2,ph);x+=L}g.fillStyle='rgba(60,35,15,.5)';g.fillRect(0,i*ph,w,2)}},[3,3]);
+const plaster=cv(512,512,(g,w,h)=>{g.fillStyle='#ebe6de';g.fillRect(0,0,w,h);for(let i=0;i<14000;i++){g.fillStyle=`rgba(${Math.random()<.5?255:120},${Math.random()<.5?250:110},${Math.random()<.5?240:100},.035)`;g.fillRect(Math.random()*w,Math.random()*h,2,2)}},[3,3]);
+const P={ // RAL colors
+ 9003:'#f4f4ef',9010:'#f1ece1',1013:'#e3d9c6',7044:'#b5b0a1',6021:'#87a180',5014:'#6c7c98',7016:'#383e42',3012:'#c6a294',8017:'#45322e',1015:'#e6d2b5'};
+const wallC=qp.get('wall')||'#ebe6de';const paint=P[qp.get('ral')||'9003']||qp.get('ral')||'#f4f4ef';
+const wallM=new THREE.MeshStandardMaterial({map:plaster,color:wallC,roughness:.92});
+const floorM=new THREE.MeshStandardMaterial({map:oak,roughness:.45});
+const paintM=new THREE.MeshPhysicalMaterial({color:paint,roughness:.38,clearcoat:.25,clearcoatRoughness:.5,side:THREE.DoubleSide});
+const alu=new THREE.MeshStandardMaterial({color:0xc9ccd0,metalness:1,roughness:.28,side:THREE.DoubleSide});
+// room: corner of two walls at x=0 (wall A along x, at z=0) and wall B along z at x=0
+const RW=4,RH=2.7;
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(RW,RW),floorM);floor.rotation.x=-Math.PI/2;floor.position.set(RW/2,0,RW/2);floor.receiveShadow=true;S.add(floor);
+const wA=new THREE.Mesh(new THREE.PlaneGeometry(RW,RH),wallM);wA.position.set(RW/2,RH/2,0);wA.receiveShadow=true;S.add(wA);
+const wB=new THREE.Mesh(new THREE.PlaneGeometry(RW,RH),wallM);wB.rotation.y=Math.PI/2;wB.position.set(0,RH/2,RW/2);wB.receiveShadow=true;S.add(wB);
+const ceil=new THREE.Mesh(new THREE.PlaneGeometry(RW,RW),new THREE.MeshStandardMaterial({color:0xf3f1ec,roughness:.95,side:THREE.DoubleSide}));ceil.rotation.x=Math.PI/2;ceil.position.set(RW/2,RH,RW/2);ceil.receiveShadow=false;S.add(ceil);const cl=new THREE.PointLight(0xfff4e6,2.2,6,1.5);cl.position.set(1.6,2.2,1.6);S.add(cl);
+// light: window from front-right
+const sun=new THREE.DirectionalLight(0xfff0dc,2.6);sun.position.set(3.5,2.6,3.2);sun.target.position.set(.6,.3,.4);sun.castShadow=true;sun.shadow.mapSize.set(4096,4096);
+Object.assign(sun.shadow.camera,{left:-3,right:3,top:3,bottom:-3,near:.1,far:12});sun.shadow.bias=-.0002;sun.shadow.normalBias=.01;sun.shadow.radius=4;S.add(sun,sun.target);
+S.add(new THREE.HemisphereLight(0xfff8ee,0x8a7058,.45));
+// profile shapes (x = out from wall, y = up), meters
+function shp(pts){const s=new THREE.Shape();s.moveTo(...pts[0]);pts.slice(1).forEach(p=>s.lineTo(...p));return s}
+function ogee(H,Tk){const pts=[[0,0],[Tk,0],[Tk,H*.62]];for(let i=0;i<=12;i++){const a=i/12;pts.push([Tk-a*(Tk*.55)+Math.sin(a*Math.PI)*Tk*.12, H*.62+a*H*.3])}pts.push([Tk*.38,H*.94],[Tk*.3,H],[0,H]);return shp(pts)}
+function cove(Sz){const pts=[[0,0],[0,-Sz*.12],[Sz*.08,-Sz*.12],[Sz*.08,-Sz*.2]];for(let i=0;i<=16;i++){const a=i/16*Math.PI/2;pts.push([Sz*.08+Math.sin(a)*Sz*.7, -Sz*.2-(1-Math.cos(a))*Sz*.62])}pts.push([Sz*.85,-Sz*.86],[Sz*.92,-Sz*.86],[Sz*.92,-Sz*.92],[Sz,-Sz*.92],[Sz,0]);return shp(pts)}
+function halfRound(Wd,Tk){const pts=[[0,0]];for(let i=0;i<=16;i++){const a=i/16*Math.PI;pts.push([Math.sin(a)*Tk,Wd/2-Math.cos(a)*Wd/2])}pts.push([0,Wd]);return shp(pts)}
+function run(shape,len,mat,place){const g=new THREE.ExtrudeGeometry(shape,{depth:len,bevelEnabled:false,curveSegments:16});const m=new THREE.Mesh(g,mat);m.castShadow=m.receiveShadow=true;place(m);S.add(m);return m}
+// along wall A (z=0): profile x->z(out), y up, extrude along x
+const alongA=(shape,len,mat,y=0,x0=0)=>run(shape,len,mat,m=>{m.rotation.y=Math.PI/2;m.position.set(x0,y,0)}); // after rotY(90): local z->world x? we fix below
+function placeA(m,y,x0){m.rotation.set(0,-Math.PI/2,0);m.position.set(x0,y,0)}
+function placeB(m,y,z0){m.position.set(0,y,z0)}
+function skirtA(shape,len,mat,y,x0=0){const g=new THREE.ExtrudeGeometry(shape,{depth:len,bevelEnabled:false,curveSegments:16});g.rotateY(-Math.PI/2);
+ const m=new THREE.Mesh(g,mat);m.position.set(x0+len,y,0);m.castShadow=m.receiveShadow=true;S.add(m);return m}
+function skirtB(shape,len,mat,y,z0=0){const g=new THREE.ExtrudeGeometry(shape,{depth:len,bevelEnabled:false,curveSegments:16});const m=new THREE.Mesh(g,mat);m.position.set(0,y,z0);m.castShadow=m.receiveShadow=true;S.add(m);return m}
+// frame of molding on wall A from (x1,y1) to (x2,y2)
+function frameA(x1,y1,x2,y2,Wd,Tk,mat){const s=halfRound(Wd,Tk);
+ skirtA(s,x2-x1,mat,y1,x1);skirtA(s,x2-x1,mat,y2-Wd,x1);
+ [x1,x2-Wd].forEach(x=>{const g=new THREE.ExtrudeGeometry(halfRound(Wd,Tk),{depth:y2-y1-2*Wd,bevelEnabled:false,curveSegments:16});g.rotateX(-Math.PI/2);g.rotateZ(0);
+  // shape x->out? after rotX(-90): shape y -> -z... build manually instead:
+  const g2=new THREE.ExtrudeGeometry(halfRound(Wd,Tk),{depth:y2-y1-2*Wd,bevelEnabled:false,curveSegments:16});
+  // shape: x=out, y=width ; want out=+z, width along x, extrude along y
+  const pos=g2.attributes.position;for(let i=0;i<pos.count;i++){const sx=pos.getX(i),sy=pos.getY(i),sz=pos.getZ(i);pos.setXYZ(i,x+sy,y1+Wd+sz,sx)}g2.computeVertexNormals();
+  const m=new THREE.Mesh(g2,mat);m.castShadow=m.receiveShadow=true;S.add(m)})}
+const cat=qp.get('cat')||'floor';
+// base layer: always some skirting (except where category replaces)
+const skH=cat==='floor'?.12:.08;
+if(cat!=='alu'){skirtA(ogee(skH,.018),RW,paintM,0,0);skirtB(ogee(skH,.018),RW,paintM,0,.018)}
+if(cat==='ceil'||cat==='cornice'||cat==='mold'||cat==='panel'){const sz=cat==='cornice'?.16:.1;skirtA(cove(sz),RW,paintM,RH,0);skirtB(cove(sz),RW,paintM,RH,sz)}
+if(cat==='mold'){frameA(.35,.35,1.35,1.95,.04,.016,paintM);frameA(1.65,.35,2.65,1.95,.04,.016,paintM);skirtA(halfRound(.05,.02),RW,paintM,.95,0);
+ // frame on wall B
+ const s=halfRound(.04,.016);}
+if(cat==='panel'){ // boiserie wainscot to 0.95 + cap rail + slats
+ const pM=paintM;const panel=new THREE.Mesh(new THREE.BoxGeometry(RW,.9,.012),pM);panel.position.set(RW/2,.5,.006);panel.receiveShadow=panel.castShadow=true;S.add(panel);
+ const panelB=new THREE.Mesh(new THREE.BoxGeometry(.012,.9,RW),pM);panelB.position.set(.006,.5,RW/2);panelB.receiveShadow=true;S.add(panelB);
+ for(let x=.05;x<RW;x+=.11){const sl=new THREE.Mesh(new THREE.BoxGeometry(.05,.82,.012),pM);sl.position.set(x,.5,.018);sl.castShadow=sl.receiveShadow=true;S.add(sl)}
+ for(let z=.12;z<RW;z+=.11){const sl=new THREE.Mesh(new THREE.BoxGeometry(.012,.82,.05),pM);sl.position.set(.018,.5,z);sl.castShadow=sl.receiveShadow=true;S.add(sl)}
+ skirtA(ogee(.06,.035),RW,pM,.94,0);skirtB(ogee(.06,.035),RW,pM,.94,.035)}
+if(cat==='alu'){ // flush shadow-gap aluminium skirting with LED
+ const a=new THREE.Mesh(new THREE.BoxGeometry(RW,.06,.012),alu);a.position.set(RW/2,.03,.006);a.castShadow=a.receiveShadow=true;S.add(a);
+ const b=new THREE.Mesh(new THREE.BoxGeometry(.012,.06,RW),alu);b.position.set(.006,.03,RW/2);S.add(b);
+ const led=new THREE.Mesh(new THREE.BoxGeometry(RW,.006,.004),new THREE.MeshStandardMaterial({color:0xffffff,emissive:0xffe1b0,emissiveIntensity:3}));led.position.set(RW/2,.064,.004);S.add(led);
+ const ledB=led.clone();ledB.geometry=new THREE.BoxGeometry(.004,.006,RW);ledB.position.set(.004,.064,RW/2);S.add(ledB);
+ const gl=new THREE.RectAreaLight?null:null;
+ const pl=new THREE.PointLight(0xffd9a0,.35,1.6);pl.position.set(.8,.12,.1);S.add(pl);
+ // aluminium corner profile on wall edge + ceiling shadow gap
+ const cg=new THREE.Mesh(new THREE.BoxGeometry(RW,.012,.03),alu);cg.position.set(RW/2,RH-.006,.015);S.add(cg)}
+// props: armchair hint / plant / roller with paint for paint category
+function M(c,r=.7,o={}){return new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:r},o))}
+function add(geo,mat,x,y,z){const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;S.add(m);return m}
+if(qp.get('props')!=='0'){
+ // plant in ceramic pot
+ add(new THREE.CylinderGeometry(.13,.1,.28,32),M(0xd8cfc2,.5),1.9,.14,.5);
+ for(let i=0;i<9;i++){const l=add(new THREE.SphereGeometry(.09,16,16),M(0x5d7a4a,.7),1.9+rnd(-.12,.12),.38+rnd(0,.35),.5+rnd(-.12,.12));l.scale.set(.5,1.6,.25);l.rotation.set(rnd(-.6,.6),rnd(0,3),rnd(-.6,.6))}
+ if(cat==='paint'){ // paint tin + roller + samples
+  add(new THREE.CylinderGeometry(.09,.09,.13,40),M(0xb9bcc0,.3,{metalness:.9}),.9,.065,.45);
+  add(new THREE.CylinderGeometry(.088,.088,.004,40),new THREE.MeshPhysicalMaterial({color:paint,roughness:.15,clearcoat:1}),.9,.131,.45);
+  const pieces=[9003,1013,6021,5014,7016];pieces.forEach((r,i)=>{const s=skirtB(ogee(.08,.016),.42,new THREE.MeshPhysicalMaterial({color:P[r],roughness:.35,clearcoat:.3,side:THREE.DoubleSide}),0,0);s.rotation.y=-Math.PI/2-.12+i*.05;s.position.set(.45+i*.11,.0,.95+i*.02);s.rotation.z=0;s.rotation.x=0});
+ }
+}
+// camera presets
+const C={floor:[[1.05,.34,1.05],[0,.08,0]],ceil:[[1.5,1.95,1.6],[0,2.55,0]],cornice:[[1.5,1.95,1.6],[0,2.55,0]],mold:[[2.6,1.2,3.1],[1.1,1.1,0]],panel:[[2.2,1.05,2.4],[0.3,.6,0.3]],alu:[[1.1,.32,1.2],[0,.06,0]],paint:[[1.6,.75,1.9],[.55,.12,.6]]};
+const c=C[cat]||C.floor;cam.position.set(...c[0]);ctl.target.set(...c[1]);ctl.update();
+if(qp.get('fov'))cam.fov=+qp.get('fov'),cam.updateProjectionMatrix();
+addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();R.setSize(innerWidth,innerHeight)});
+window.setPaint=hex=>{paintM.color.set(hex)};window.ready=false;
+let n=0;(function loop(){ctl.update();R.render(S,cam);if(++n>20)window.ready=true;requestAnimationFrame(loop)})();
+</script></body></html>
